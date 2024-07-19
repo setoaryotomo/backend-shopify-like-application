@@ -1,5 +1,5 @@
 # UAS Pemrograman Sisi Server
-Seto Aryotomo (A11.2021.13747/A11.4601)
+Seto Aryotomo (A11.2021.13747 / A11.4601)
 ----------
 
 ## Installation
@@ -27,13 +27,13 @@ Untuk mengimport dummy data jalankan perintah berikut
 ## Endopoint
 
 Customer
-- [Get] All Customers (customers.json)
-- [Get] Single Customers (customers/{id_cust}.json)
-- [Get] Search Customer (customers/count.json) params query : first name, last name, email
- -[Get] Count Customers (customers/count.json)
-- [Post] Create Customer (customers.json)
-- [Put] Update Customer (customers/{id_cust}.json)
-- [Delete] Customer (customers/{id_cust}.json)
+- [GET] All Customers (customers.json)
+- [GET] Single Customers (customers/{id_cust}.json)
+- [GET] Search Customer (customers/search.json) params query : first name, last name, email
+- [GET] Count Customers (customers/count.json)
+- [POST] Create Customer (customers.json)
+- [PUT] Update Customer (customers/{id_cust}.json)
+- [DELETE] Customer (customers/{id_cust}.json)
 
 Customer Address
 - [GET] All Address (customers.json)
