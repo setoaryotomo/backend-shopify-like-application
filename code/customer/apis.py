@@ -12,10 +12,10 @@ from ninja_simple_jwt.auth.ninja_auth import HttpJwtAuth
 from django.contrib.auth.hashers import make_password
 
 from .models import User,Customer,Address
-from discount.models import PriceRule,DiscountCode
+from discount.models import PriceRule
 
 from .schemas import CustomerOut, CustomerResp, AddressIn, AddressResp, AddressOut, CustomerIn
-from discount.schemas import PriceRuleIn, PriceRuleOut, PriceRuleResp, DiscountCodeIn, DiscountCodeOut, DiscountCodeResp
+from discount.schemas import PriceRuleIn, PriceRuleOut, PriceRuleResp
 
 api = NinjaAPI()
 api.add_router("/auth/", mobile_auth_router)
@@ -39,15 +39,12 @@ def searchCustomers(request, query: str = Query(...)):
     email_query = query.split(':')[1] if 'email:' in query else None
     fisrt_name_query = query.split(':')[1] if 'fisrt_name:' in query else None
     last_name_query = query.split(':')[1] if 'last_name:' in query else None
-    # phone_query = query.split(':')[1] if 'phone:' in query else None
     if email_query:
         customers = Customer.objects.filter(user__email=email_query)
     elif fisrt_name_query:
         customers = Customer.objects.filter(user__first_name=fisrt_name_query)
     elif last_name_query:
         customers = Customer.objects.filter(user__last_name=last_name_query)
-    # elif phone_query:
-    #     customers = Customer.objects.filter(user__phone=phone_query)
     return {'customers': customers}
 
 # Count all Customers
@@ -62,23 +59,6 @@ def getCustomerById(request, id_cust: int):
     customer = Customer.objects.get(pk=id_cust)
     return customer
 
-# @api.get('customers/search.json', auth=apiAuth, response=CustomerResp)
-# def searchCustomers(request, query: Optional[str] = Query(None)):
-#     customers = Customer.objects.all()
-    
-#     if query:
-#         filters = query.split(',')
-#         for filter in filters:
-#             key, value = filter.split(':')
-#             if key == 'email':
-#                 customers = customers.filter(user__email__icontains=value)
-#             elif key == 'first_name':
-#                 customers = customers.filter(user__first_name__icontains=value)
-#             elif key == 'last_name':
-#                 customers = customers.filter(user__last_name__icontains=value)
-#             # Add more filters as needed
-
-#     return {'customers': customers}
 
 # Create Customer
 @api.post('customers.json', auth=apiAuth, response=CustomerOut)
@@ -124,21 +104,6 @@ def updateCustomer(request, id_cust: int, data: CustomerIn):
     
     return customer
 
-# @api.post('customers.json', auth=apiAuth, response=CustomerResp)
-# def createCustomer(request, data: CustomerIn):
-#     user, created = User.objects.get_or_create(
-#         email=data.email,
-#         defaults={'first_name': data.first_name, 'last_name': data.last_name}
-#     )
-
-#     if created:
-#         new_customer = Customer.objects.create(
-#             user=user,
-#             phone=data.phone,
-#             state=data.state,
-#             currency=data.currency
-#         )
-#         return {"customer": new_customer}
 
     
 # Delete Customers
@@ -210,7 +175,6 @@ def updateCustomerAddress(request, id_cust: int, id_addr: int, data: AddressIn):
     address.zip = data.zip
     address.first_name = data.first_name
     address.last_name = data.last_name
-    # address.name = data.name
     address.save()
     return address
 
@@ -245,7 +209,7 @@ def create_price_rule(request, payload: PriceRuleIn):
             allocation_method=payload.allocation_method,
             value_type=payload.value_type,
             value=payload.value,
-            starts_at=datetime.now()  # Anda dapat menyesuaikan ini
+            starts_at=datetime.now()  
         )
         price_rule.save()
         return {"price_rule": price_rule}
@@ -263,8 +227,6 @@ def update_price_rule(request, id: int, payload: PriceRuleIn):
         price_rule.allocation_method = payload.allocation_method
         price_rule.value_type = payload.value_type
         price_rule.value = payload.value
-        # price_rule.starts_at = payload.starts_at
-        # price_rule.ends_at = payload.ends_at
         price_rule.updated_at = datetime.now()
         price_rule.save()
         return {"price_rule": price_rule}
@@ -285,36 +247,3 @@ def delete_price_rule(request, id: int):
     except Exception as e:
         raise HTTPError(400, str(e))
 
-#Discount Codes
-@api.post("price_rules/{id}/batch.json", auth=apiAuth, response=DiscountCodeResp)  
-def create_discount_code(request, payload: DiscountCodeIn):  
-   discount_code = DiscountCode.objects.create(**payload.dict())  
-   return {"discount_code": discount_code}  
-
-@api.post("price_rules/{id}/discount_codes.json", auth=apiAuth, response=DiscountCodeOut)  
-def create_discount_code_job(request, payload: DiscountCodeIn):  
-   discount_code_job = DiscountCode.objects.create(**payload.dict())  
-   return {"discount_code_job": discount_code_job} 
-
-@api.get("discount_codes/count.json", auth=apiAuth)  
-def get_discount_code_count(request):  
-   count = DiscountCode.objects.count()  
-   return {"count": count}  
-  
-@api.get("discount_codes/{id}/lookup.json", auth=apiAuth)  
-def get_discount_code_location(request, id: int):  
-   discount_code = DiscountCode.objects.get(pk=id)  
-   return {"location": discount_code.location}
-  
-@api.put("price_rules/{id}/discount_codes/{price_rule_id}.json", auth=apiAuth, response=DiscountCodeResp)  
-def update_discount_code(request, id: int, payload: DiscountCodeIn):  
-   discount_code = DiscountCode.objects.get(pk=id)  
-   for field, value in payload.dict().items():  
-      setattr(discount_code, field, value)  
-   discount_code.save()  
-   return {"discount_code": discount_code}  
-  
-@api.delete("price_rules/{id}/discount_codes/{price_rule_id}.json", auth=apiAuth)  
-def delete_discount_code(request, id: int):  
-   DiscountCode.objects.get(pk=id).delete()  
-   return {}  
